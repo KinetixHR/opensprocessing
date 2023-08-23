@@ -4,7 +4,7 @@ logging.info("Starting Script.")
 
 # Import needed functionality
 from logging import exception
-from types import NoneType
+#from types import NoneType
 import pandas as pd
 import os
 import re
@@ -48,22 +48,26 @@ df_tr = pd.read_csv(tr_file)
 df_lg = pd.read_csv(lg_file, skiprows=2)
 #df_lg = pd.read_excel(lg_file, skiprows=2)
 
-print("Done reading in files!")
+logging.info("Done reading in files!")
 
 list_of_tr_reqs = list(df_tr["Client Req Number"])
 list_of_lg_reqs = list(df_lg["Job Req ID"])
 fix_list = []
 
-print("Searching for non-numeric reqs...")
+logging.info("Searching for non-numeric reqs...")
+#print(list_of_tr_reqs)
 for el in list_of_tr_reqs:
     m = re.search('(\D)',el)
-
-    if type(m) != NoneType:
-        print(f"\tfound: \t{el}")
+    #print(el,m)
+    if m != None:
+        logging.info(f"\tfound: \t{el}")
+        #print(f"\tfound: \t{el}")
+    
     else:
         fix_list.append(int(el))
-print("Number of reqs from TR:",len(list_of_tr_reqs))
-print("Number of reqs from TR (minus those that are not numeric):",len(fix_list))
+
+logging.info("Number of reqs from TR:",len(list_of_tr_reqs))
+logging.info("Number of reqs from TR (minus those that are not numeric):",len(fix_list))
 list_of_tr_reqs = fix_list
 unseen_reqs = list(set(list_of_lg_reqs) - set(list_of_tr_reqs))
 
@@ -147,13 +151,13 @@ all_new_reqs = df_output[df_output["Client Req Number"].isin(unseen_reqs)]
 new_reqs_for_tr = all_new_reqs[all_new_reqs["Req Status"] == "Open"]
 new_reqs_for_tr["Coach"] = "Elise Warren"
 
-print(f"Working on file with { new_reqs_for_tr.drop('Req Status',axis = 1).shape[0] } rows...")
+logging.info(f"Working on file with { new_reqs_for_tr.drop('Req Status',axis = 1).shape[0] } rows...")
 #   Code to exclude certain reqs
 exclusion_list = [17935,14701,18139]
-print("Excluding these reqs from the export: ",exclusion_list)
+logging.info("Excluding these reqs from the export: ",exclusion_list)
 new_reqs_for_tr = new_reqs_for_tr[~new_reqs_for_tr["Client Req Number"].isin(exclusion_list)]
 
-print(f"Generating file with { new_reqs_for_tr.drop('Req Status',axis = 1).shape[0] } rows...")
+logging.info(f"Generating file with { new_reqs_for_tr.drop('Req Status',axis = 1).shape[0] } rows...")
 
 
 
@@ -173,13 +177,7 @@ msg['Subject'] = subject
 msg.attach(MIMEText(body, 'plain'))
 
 
-filename = f'LG {genDate()}.csv'     # Replace with the name of your file
-with open(filename, 'rb') as attachment:
-    file = MIMEBase('application', 'octate-stream')
-    file.set_payload(attachment.read())
-    encoders.encode_base64(file)
-    file.add_header('Content-Disposition', 'attachment', filename=filename)
-    msg.attach(file)
+
 
 # Connect to the SMTP server and send the email
 smtp_server = 'smtp.gmail.com'      # Example: Gmail SMTP server
@@ -204,13 +202,19 @@ if new_reqs_for_tr.drop('Req Status',axis = 1).shape[0] == 0:
         server.login(sender_email, sender_password)
         server.send_message(msg)
         server.quit()
-        print('Email sent successfully.')
+        logging.info('Email sent successfully.')
     except Exception as e:
-        print('Failed to send email. Error:', e)
+        logging.warning('Failed to send email. Error:', e)
 
 else:
     new_reqs_for_tr.drop("Req Status",axis = 1).to_csv(f"LG {genDate()}.csv",index = False)
-
+    filename = f'LG {genDate()}.csv'     # Replace with the name of your file
+    with open(filename, 'rb') as attachment:
+        file = MIMEBase('application', 'octate-stream')
+        file.set_payload(attachment.read())
+        encoders.encode_base64(file)
+        file.add_header('Content-Disposition', 'attachment', filename=filename)
+        msg.attach(file)
 
     try:
         server = smtplib.SMTP(smtp_server, smtp_port)
@@ -218,6 +222,6 @@ else:
         server.login(sender_email, sender_password)
         server.send_message(msg)
         server.quit()
-        print('Email sent successfully.')
+        logging.info('Email sent successfully.')
     except Exception as e:
-        print('Failed to send email. Error:', e)
+        logging.warning('Failed to send email. Error:', e)

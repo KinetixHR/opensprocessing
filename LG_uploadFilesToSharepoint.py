@@ -116,41 +116,44 @@ drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
 files = os.listdir()
 for el in files:
     if today in el:
-        filename = el 
+        filename = el
+    else:
+        filename = 'nothing' 
 
-folder_path = 'Daily New Job Opens/L+G/'
+if filename != 'nothing':
+    folder_path = 'Daily New Job Opens/L+G/'
 
-path_url = urllib.parse.quote(f'{folder_path}/{filename}')
-result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
-if result.status_code == 200:
-    file_info = result.json()
-    file_id = file_info['id']
-    result = requests.put(
-        f'{ENDPOINT}/drives/{drive_id}/items/{file_id}/content',
-        headers={
-            'Authorization': 'Bearer ' + access_token,
-            'Content-type': 'application/binary'
-        },
-        data=open(filename, 'rb').read()
-    )
-    
-elif result.status_code == 404:
-    folder_url = urllib.parse.quote(folder_path)
-    result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{folder_url}', headers={'Authorization': 'Bearer ' + access_token})
-    result.raise_for_status()
-    folder_info = result.json()
-    folder_id = folder_info['id']
+    path_url = urllib.parse.quote(f'{folder_path}/{filename}')
+    result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
+    if result.status_code == 200:
+        file_info = result.json()
+        file_id = file_info['id']
+        result = requests.put(
+            f'{ENDPOINT}/drives/{drive_id}/items/{file_id}/content',
+            headers={
+                'Authorization': 'Bearer ' + access_token,
+                'Content-type': 'application/binary'
+            },
+            data=open(filename, 'rb').read()
+        )
+        
+    elif result.status_code == 404:
+        folder_url = urllib.parse.quote(folder_path)
+        result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{folder_url}', headers={'Authorization': 'Bearer ' + access_token})
+        result.raise_for_status()
+        folder_info = result.json()
+        folder_id = folder_info['id']
 
-    file_url = urllib.parse.quote(filename)
-    result = requests.put(
-        f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}:/{file_url}:/content',
-        headers={
-            'Authorization': 'Bearer ' + access_token,
-            'Content-type': 'application/binary'
-        },
-        data=open(filename, 'rb').read()
-    )
-    logging.info("Successfully uploaded the file to the L+G folder")
+        file_url = urllib.parse.quote(filename)
+        result = requests.put(
+            f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}:/{file_url}:/content',
+            headers={
+                'Authorization': 'Bearer ' + access_token,
+                'Content-type': 'application/binary'
+            },
+            data=open(filename, 'rb').read()
+        )
+        logging.info("Successfully uploaded the file to the L+G folder")
 
 logging.info("Removing files from local disk...")
 for el in os.listdir():

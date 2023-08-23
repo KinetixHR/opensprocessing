@@ -74,12 +74,7 @@ def tch_name_transformer(name):
     
     return fixed_name
 
-# Code to spin up a DB at runtime. 
-df = pd.read_excel('Employee ID Numbers from Paychex.xlsx')
-conn = sqlite3.connect('EID_numbers.db')
-df.to_sql('mytable', conn, if_exists='replace', index=False)
-conn.commit()
-conn.close()
+
 
     
 find_last_week = date.today() - dt.timedelta(days=100)
@@ -100,6 +95,13 @@ for el in list_files:
         tr_file = el
     if "EID" in el:
         logging.info(el)
+
+# Code to spin up a DB at runtime. 
+df = pd.read_excel('Employee ID Numbers from Paychex.xlsx')
+conn = sqlite3.connect('EID_numbers.db')
+df.to_sql('mytable', conn, if_exists='replace', index=False)
+conn.commit()
+conn.close()
 
 # I use excel to make this sheet - combining the Austin and Houston Salary Data. The Austin Salary Grades should be amended to
 # Look like 12Austin instead of just 12 for Houston.
@@ -401,9 +403,9 @@ try:
     server.login(sender_email, sender_password)
     server.send_message(msg)
     server.quit()
-    print('Email sent successfully.')
+    logging.info('Email sent successfully.')
 except Exception as e:
-    print('Failed to send email. Error:', e)
+    logging.warning('Failed to send email. Error:', e)
 
 
 
