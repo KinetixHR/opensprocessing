@@ -374,7 +374,7 @@ opens.to_csv(f"TCH {genDate()}.csv",index = False)
 sender_email = 'kinetixopensprocessing@gmail.com'
 sender_password = 'ttljtrsnsqlhmnrz'
 #receiver_email = ['awhelan@kinetixhr.com']
-receiver_email = ['awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com','skenny@kinetixhr.com']
+receiver_email = ['kinetixopensprocessing@gmail.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com','skenny@kinetixhr.com']
 subject = 'New TCH Opens'
 body = 'Hey CJ, please find todays opens for TCH. NOTE: This is an automated email sent the script that runs the opens processing.'
 

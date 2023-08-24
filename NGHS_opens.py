@@ -69,7 +69,7 @@ def nghs_name_transformer(name):
 
 
 # This is who the email will be sent to. Putting it up here to quickly debug the script without spamming folks. 
-receiver_email = ['awhelan@kinetixhr.com','pvelusamy@kinetixhr.com', 'bgauthier@kinetixhr.com','sschmitt@kinetixhr.com','jhutchins@kinetixhr.com']#, 'ehenschel@kinetixhr.com']
+receiver_email = ['kinetixopensprocessing@gmail.com', 'awhelan@kinetixhr.com','pvelusamy@kinetixhr.com', 'bgauthier@kinetixhr.com','sschmitt@kinetixhr.com','jhutchins@kinetixhr.com']#, 'ehenschel@kinetixhr.com']
 #receiver_email = ['awhelan@kinetixhr.com']
 
 
