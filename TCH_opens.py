@@ -161,6 +161,8 @@ recruiters = [
     "Domeaux, Tashona R",
     'Bookout, Ellen D',
     'Jones, Khalilah D',
+    #'Brodeur, Elizabeth'
+    #'Jackson, Mikale'
 
 ]
 
@@ -192,11 +194,8 @@ df_tch["Requision Number"] = pd.to_numeric(df_tch["Requisition Number"],errors='
 df_tr["Client Req Number"] = pd.to_numeric(df_tr["Client Req Number"],errors='coerce')
 df_tch["Creation Date"] = pd.to_datetime(df_tch["Creation Date"])
 df_tch = df_tch[df_tch["Requisition Status"].isin(approved_statuses)]
-checkForReqs("403502", df_tch)
 tr_reqs = list(set(df_tr["Client Req Number"]))
 tch_reqs = list(set(df_tch['Requisition Number']))
-checkForReqs("403502", df_tr)
-logging.info(tch_reqs[2],tr_reqs[2],type(tch_reqs[2]),type(tr_reqs[2]))
 diff = list(set(tch_reqs) - set(tr_reqs))           # Should find new reqs
 
 opens = df_tch[df_tch['Requisition Number'].isin(diff)]
@@ -258,7 +257,6 @@ opens["Company"] = 'Texas Childrens Hospital'
 
 
 opens["Pay Grade"] = opens["Salary Grade"].apply(lambda x: str(x).split(' ')[-1] if len(str(x)) > 0 else "NO DATA")
-#opens["Pay Grade"] = opens["Pay Grade"].apply(lambda x: str(int(x)) if (type(x) == int) else x)
 
 for el in opens.iterrows():
     # Set Austin-related Jobs
