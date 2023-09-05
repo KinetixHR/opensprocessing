@@ -190,13 +190,14 @@ df_tch.columns = ['Requisition Title', 'Requisition Number', 'Job Requisition ID
 df_tch["Hiring Manager"] = df_tch["Hiring Manager First Name"] + " " + df_tch["Hiring Manager Last Name"]
 df_tch["Requisition Status"] = df_tch["Current Phase"] + " - " + df_tch["Current State"]
 
-df_tch["Requision Number"] = pd.to_numeric(df_tch["Requisition Number"],errors='coerce')
+df_tch["Requisition Number"] = pd.to_numeric(df_tch["Requisition Number"],errors='coerce')
 df_tr["Client Req Number"] = pd.to_numeric(df_tr["Client Req Number"],errors='coerce')
 df_tch["Creation Date"] = pd.to_datetime(df_tch["Creation Date"])
 df_tch = df_tch[df_tch["Requisition Status"].isin(approved_statuses)]
 tr_reqs = list(set(df_tr["Client Req Number"]))
 tch_reqs = list(set(df_tch['Requisition Number']))
 diff = list(set(tch_reqs) - set(tr_reqs))           # Should find new reqs
+print(diff)
 
 opens = df_tch[df_tch['Requisition Number'].isin(diff)]
 opens = opens[opens["Creation Date"].dt.date >= find_last_week]
@@ -371,8 +372,8 @@ opens.to_csv(f"TCH {genDate()}.csv",index = False)
 # Define your email credentials
 sender_email = 'kinetixopensprocessing@gmail.com'
 sender_password = 'ttljtrsnsqlhmnrz'
-#receiver_email = ['awhelan@kinetixhr.com']
-receiver_email = ['kinetixopensprocessing@gmail.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com','skenny@kinetixhr.com']
+#receiver_email = ['kasokan@kinetixhr.com']
+receiver_email = ['kinetixopensprocessing@gmail.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com','skenney@kinetixhr.com']
 subject = 'New TCH Opens'
 body = 'Hey CJ, please find todays opens for TCH. NOTE: This is an automated email sent the script that runs the opens processing.'
 
