@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(filename='nghs_opens_logging.log', level=logging.DEBUG,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(filename='nghs_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 logging.info("Starting Script.")
 
 import requests
@@ -122,6 +122,8 @@ folder_path = 'Daily New Job Opens/NGHS/'
 
 path_url = urllib.parse.quote(f'{folder_path}/{filename}')
 result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
+logging.info(f"result status code: {result.status_code}")
+
 if result.status_code == 200:
     file_info = result.json()
     file_id = file_info['id']
@@ -133,7 +135,8 @@ if result.status_code == 200:
         },
         data=open(filename, 'rb').read()
     )
-    
+    logging.info("File is already in Sharepoint.")
+
 elif result.status_code == 404:
     folder_url = urllib.parse.quote(folder_path)
     result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{folder_url}', headers={'Authorization': 'Bearer ' + access_token})
@@ -152,9 +155,10 @@ elif result.status_code == 404:
     )
     logging.info("Successfully uploaded the file to the NGHS folder")
 
+
 logging.info("Removing files from local disk...")
 for el in os.listdir():
-    logging.info(el)
+    #logging.info(el)
     if "NGHS 2" in el:
       os.remove(el)
       logging.info(f"Removed file! {el}")

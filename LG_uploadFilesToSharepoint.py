@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(filename='lg_opens_logging.log', level=logging.DEBUG,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(filename='lg_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 logging.info("Starting Script.")
 
 import requests
@@ -117,6 +117,7 @@ files = os.listdir()
 for el in files:
     if today in el:
         filename = el
+        break
     else:
         filename = 'nothing' 
 
@@ -136,6 +137,8 @@ if filename != 'nothing':
             },
             data=open(filename, 'rb').read()
         )
+        logging.info("File is already in Sharepoint.")
+
         
     elif result.status_code == 404:
         folder_url = urllib.parse.quote(folder_path)
@@ -153,11 +156,11 @@ if filename != 'nothing':
             },
             data=open(filename, 'rb').read()
         )
-        logging.info("Successfully uploaded the file to the L+G folder")
-
+        logging.info("Successfully uploaded the file to the NGHS folder")
+        
 logging.info("Removing files from local disk...")
 for el in os.listdir():
-    logging.info(el)
+    #logging.info(el)
     if "LG 2" in el:
       os.remove(el)
       logging.info(f"Removed file! {el}")
