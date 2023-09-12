@@ -325,7 +325,7 @@ opens = pd.merge(opens,salary_data,left_on = "Pay Grade",right_on = "SG",how = "
 opens["Salary Low"] = opens["MIN"].apply(lambda x: round(x,0))
 opens["Salary High"] = opens["MID"].apply(lambda x: round(x,0))
 opens["Requisition Title"] = opens["Requisition Title"].apply(lambda x: tch_name_transformer(x))
-opens['Requisition Title'] = opens['Requisition Title'].astype("str") + " - " + opens["Requisition Number"].astype("str")
+opens['Requisition Title'] = opens['Requisition Title'].astype("str") + " - " + opens["Requisition Number"].astype('int').astype("str")
 opens = opens.drop(['Business Unit', "Salary Grade","SG","MAX", "MIN",'MID'],axis=1)
 opens = opens.drop_duplicates()
 
@@ -347,12 +347,6 @@ opens = opens.drop(['Full Name','TCH Name'],axis=1)
 opens.drop(['Shift Information1'],axis=1,inplace = True)
 
 opens["Record Type"] = "RPO"
-opens["Job Name"] = opens["Job Name"].apply(lambda x: tch_name_transformer(x))
-
-for el in opens.iterrows():
-    if len(el[1]["Job Name"]) > 70:
-        opens.at[el[0],"Job Name"] = el[1]["Job Name"].replace(" ","")
-        opens.at[el[0],"Job Name"] = el[1]["Job Name"].replace(",","")
 
 logging.info(f"Done processing, generating file with {opens.shape[0]} rows")
 
@@ -361,6 +355,9 @@ if opens.shape[0] > 1000:
     quit()
 
 opens.to_csv(f"TCH {genDate()}.csv",index = False)
+
+
+
 
 
 
