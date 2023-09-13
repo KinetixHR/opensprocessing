@@ -117,6 +117,7 @@ files = os.listdir()
 for el in files:
     if today in el:
         filename = el
+        break
     else:
         filename = 'nothing' 
 
