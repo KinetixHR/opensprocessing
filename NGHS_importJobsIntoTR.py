@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(filename='nghs_opens_logging.log', level=logging.DEBUG,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(filename='nghs_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 logging.info("Starting Script.")
 
 
@@ -244,54 +244,90 @@ def genDate():
         day = "0"+day
     return year+month+day
 
+def sendEmail(text): 
+    # Define your email credentials
+    sender_email = 'kinetixopensprocessing@gmail.com'
+    sender_password = 'ttljtrsnsqlhmnrz'
+    receiver_email = ['Kinetixreporting@kinetixhr.com']
+    subject = 'New TCH Opens'
+    body = text
 
-TENANT_ID = '87272575-d7ac-4705-86e3-21cd39600d46'
-CLIENT_ID = '514cf64c-692a-48b1-a791-1c0da37fcb0c'
-SHAREPOINT_HOST_NAME = 'kinetixhr.sharepoint.com'
-SITE_NAME = 'KinetixCoaches'
-
-AUTHORITY = 'https://login.microsoftonline.com/' + TENANT_ID
-ENDPOINT = 'https://graph.microsoft.com/v1.0'
-
-SCOPES = [
-    'Files.ReadWrite.All',
-    'Sites.ReadWrite.All',
-    'User.Read',
-    'User.ReadBasic.All'
-]
-
-session = requests.Session()
-# Setting up salesforce functionality
-sf = Salesforce(password='Kinetix3', username='awhelan@kinetixhr.com', organizationId='00D37000000HXaI',client_id='My App',session = session) 
+    # Create the email message
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = ", ".join(receiver_email)
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
 
 
-# Log in to Azure AD
-access_token = loginToSharepointViaAzure()
-logging.info("Logged in!")
+    # Connect to the SMTP server and send the email
+    smtp_server = 'smtp.gmail.com'  # Example: Gmail SMTP server
+    smtp_port = 587  # Example: Gmail SMTP port
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        logging.info('Email sent successfully.')
+        return True
+    except Exception as e:
+        logging.warning('Failed to send email. Error:', e)
+        return False
 
-# Get Sharepoint Details for nghs folder download
-item_path = 'Daily New Job Opens/NGHS'
-drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
-logging.info("Got details.")
+try:
+  TENANT_ID = '87272575-d7ac-4705-86e3-21cd39600d46'
+  CLIENT_ID = '514cf64c-692a-48b1-a791-1c0da37fcb0c'
+  SHAREPOINT_HOST_NAME = 'kinetixhr.sharepoint.com'
+  SITE_NAME = 'KinetixCoaches'
 
-result = requests.get(f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}/children', headers={'Authorization': 'Bearer ' + access_token})
-children = result.json()['value']
-for item in children:
-    if genDate() in item['name']:
-        file_to_upload_path = item_path + '/' + item['name']
+  AUTHORITY = 'https://login.microsoftonline.com/' + TENANT_ID
+  ENDPOINT = 'https://graph.microsoft.com/v1.0'
 
-logging.info(file_to_upload_path)
+  SCOPES = [
+      'Files.ReadWrite.All',
+      'Sites.ReadWrite.All',
+      'User.Read',
+      'User.ReadBasic.All'
+  ]
+
+  session = requests.Session()
+  # Setting up salesforce functionality
+  sf = Salesforce(password='Kinetix3', username='awhelan@kinetixhr.com', organizationId='00D37000000HXaI',client_id='My App',session = session) 
 
 
-# Download NGHS Files and read into dataframes!
-data_to_upload = downloadFromSharepoint(file_to_upload_path)
-logging.info("Loaded in data - done!.")
+  # Log in to Azure AD
+  access_token = loginToSharepointViaAzure()
+  logging.info("Logged in!")
 
-data_to_upload["Contact_id"] = data_to_upload["Contact"].apply(api_findContact)
-data_to_upload['Record Owner ID'] = data_to_upload['Record Owner'].apply(api_findUser)
+  # Get Sharepoint Details for nghs folder download
+  item_path = 'Daily New Job Opens/NGHS'
+  drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
+  logging.info("Got details.")
 
-logging.info("Done with prep for ",data_to_upload.shape[0]," reqs.")
-for el in data_to_upload.iterrows():
-    api_ImportRow(el)
-logging.info("Done with importing new reqs!")
+  result = requests.get(f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}/children', headers={'Authorization': 'Bearer ' + access_token})
+  children = result.json()['value']
+  for item in children:
+      if genDate() in item['name']:
+          file_to_upload_path = item_path + '/' + item['name']
+
+  logging.info(file_to_upload_path)
+
+
+  # Download NGHS Files and read into dataframes!
+  data_to_upload = downloadFromSharepoint(file_to_upload_path)
+  logging.info("Loaded in data - done!.")
+
+  data_to_upload["Contact_id"] = data_to_upload["Contact"].apply(api_findContact)
+  data_to_upload['Record Owner ID'] = data_to_upload['Record Owner'].apply(api_findUser)
+
+  logging.info("Done with prep for ",data_to_upload.shape[0]," reqs.")
+  for el in data_to_upload.iterrows():
+      api_ImportRow(el)
+  logging.info("Done with importing new reqs!")
+  sendEmail("NGHS Reqs imported to TR successfully!")
+
+except Exception as e:
+    logging.warning("NGHS Reqs failed import to TR")
+    sendEmail(f"NGHS Reqs failed import to TR. details here: {str(e)}")
 
