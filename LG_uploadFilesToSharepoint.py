@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(filename='lg_opens_logging.log', level=logging.DEBUG,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(filename='lg_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 logging.info("Starting Script.")
 
 import requests
@@ -11,7 +11,42 @@ import urllib
 import pandas as pd
 import os.path
 from datetime import date
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
+def sendEmail(text): 
+    # Define your email credentials
+    sender_email = 'kinetixopensprocessing@gmail.com'
+    sender_password = 'ttljtrsnsqlhmnrz'
+    receiver_email = ['Kinetixreporting@kinetixhr.com']
+    subject = 'New TCH Opens'
+    body = text
+
+    # Create the email message
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = ", ".join(receiver_email)
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+
+    # Connect to the SMTP server and send the email
+    smtp_server = 'smtp.gmail.com'  # Example: Gmail SMTP server
+    smtp_port = 587  # Example: Gmail SMTP port
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        logging.info('Email sent successfully.')
+        return True
+    except Exception as e:
+        logging.warning('Failed to send email. Error:', e)
+        return False
 
 def loginToSharepointViaAzure():
     cache = msal.SerializableTokenCache()
@@ -121,44 +156,51 @@ for el in files:
     else:
         filename = 'nothing' 
 
-if filename != 'nothing':
-    folder_path = 'Daily New Job Opens/L+G/'
-
-    path_url = urllib.parse.quote(f'{folder_path}/{filename}')
-    result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
-    if result.status_code == 200:
-        file_info = result.json()
-        file_id = file_info['id']
-        result = requests.put(
-            f'{ENDPOINT}/drives/{drive_id}/items/{file_id}/content',
-            headers={
-                'Authorization': 'Bearer ' + access_token,
-                'Content-type': 'application/binary'
-            },
-            data=open(filename, 'rb').read()
-        )
+try:
         
-    elif result.status_code == 404:
-        folder_url = urllib.parse.quote(folder_path)
-        result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{folder_url}', headers={'Authorization': 'Bearer ' + access_token})
-        result.raise_for_status()
-        folder_info = result.json()
-        folder_id = folder_info['id']
+    if filename != 'nothing':
+        folder_path = 'Daily New Job Opens/L+G/'
 
-        file_url = urllib.parse.quote(filename)
-        result = requests.put(
-            f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}:/{file_url}:/content',
-            headers={
-                'Authorization': 'Bearer ' + access_token,
-                'Content-type': 'application/binary'
-            },
-            data=open(filename, 'rb').read()
-        )
-        logging.info("Successfully uploaded the file to the L+G folder")
+        path_url = urllib.parse.quote(f'{folder_path}/{filename}')
+        result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
+        if result.status_code == 200:
+            file_info = result.json()
+            file_id = file_info['id']
+            result = requests.put(
+                f'{ENDPOINT}/drives/{drive_id}/items/{file_id}/content',
+                headers={
+                    'Authorization': 'Bearer ' + access_token,
+                    'Content-type': 'application/binary'
+                },
+                data=open(filename, 'rb').read()
+            )
+            
+        elif result.status_code == 404:
+            folder_url = urllib.parse.quote(folder_path)
+            result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{folder_url}', headers={'Authorization': 'Bearer ' + access_token})
+            result.raise_for_status()
+            folder_info = result.json()
+            folder_id = folder_info['id']
+
+            file_url = urllib.parse.quote(filename)
+            result = requests.put(
+                f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}:/{file_url}:/content',
+                headers={
+                    'Authorization': 'Bearer ' + access_token,
+                    'Content-type': 'application/binary'
+                },
+                data=open(filename, 'rb').read()
+            )
+            logging.info("Successfully uploaded the file to the L+G folder")
+
+except Exception as e:
+    logging.warning("Upload to Sharepoint for today's NGHS file failed!")
+    sendEmail(f"Sharepoint file Upload for today's NGHS file has failed! details here: {str(e)}")
+
 
 logging.info("Removing files from local disk...")
 for el in os.listdir():
-    logging.info(el)
+    #logging.info(el)
     if "LG 2" in el:
       os.remove(el)
       logging.info(f"Removed file! {el}")
