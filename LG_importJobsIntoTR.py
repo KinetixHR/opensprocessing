@@ -62,6 +62,7 @@ def api_ImportRow(row):
 
   except Exception as ex:
       print(ex)
+      sendEmail(f"Failed to insert job {row[1]['Job Name']} into TR. Details: {ex}")
       return "FAILED TO INSERT JOB"
 
 def api_findContact(contactname):
