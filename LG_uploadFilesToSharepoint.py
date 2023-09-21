@@ -22,7 +22,7 @@ def sendEmail(text):
     sender_email = 'kinetixopensprocessing@gmail.com'
     sender_password = 'ttljtrsnsqlhmnrz'
     receiver_email = ['Kinetixreporting@kinetixhr.com']
-    subject = 'New TCH Opens'
+    subject = 'Landis + Gyr upload file to Sharepoint: Alert'
     body = text
 
     # Create the email message
