@@ -249,7 +249,7 @@ def sendEmail(text):
     # Define your email credentials
     sender_email = 'kinetixopensprocessing@gmail.com'
     sender_password = 'ttljtrsnsqlhmnrz'
-    receiver_email = ['Kinetixreporting@kinetixhr.com']
+    receiver_email = ['dart@kinetixhr.com']
     subject = 'NGHS Job Import to TR: Alert!'
     body = text
 
