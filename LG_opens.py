@@ -164,7 +164,7 @@ logging.info(f"Generating file with { new_reqs_for_tr.drop('Req Status',axis = 1
 # Define your email credentials
 sender_email = 'kinetixopensprocessing@gmail.com'
 sender_password = 'ttljtrsnsqlhmnrz'
-receiver_email = ['kinetixopensprocessing@gmail.com','awhelan@kinetixhr.com', 'ewarren@kinetixhr.com', 'bgauthier@kinetixhr.com','cbloebaum@kinetixhr.com','jhutchins@kinetixhr.com']
+receiver_email = ["kxdart@kinetixhr.com",'kinetixopensprocessing@gmail.com','awhelan@kinetixhr.com', 'ewarren@kinetixhr.com', 'bgauthier@kinetixhr.com','cbloebaum@kinetixhr.com','jhutchins@kinetixhr.com']
 #receiver_email = ['awhelan@kinetixhr.com']
 subject = f'New LG Opens for {genDate()}'
 body = 'Good Morning folks. Jobs have been loaded into the following Sharepoint Folder for approval before automatic loading later today (6PM Eastern). Please review and approve before then. https://kinetixhr.sharepoint.com/:f:/r/sites/KinetixCoaches/Shared%20Documents/Daily%20New%20Job%20Opens/L+G?csf=1&web=1&e=QTyoXR'
