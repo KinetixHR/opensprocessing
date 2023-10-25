@@ -44,8 +44,8 @@ def sendEmail(text):
         server.quit()
         logging.info('Email sent successfully.')
         return True
-    except Exception as e:
-        logging.warning('Failed to send email. Error:', e)
+    except Exception as exc:
+        logging.warning(f'Failed to send email. Error: {exc}')
         return False
 
 def loginToSharepointViaAzure():
