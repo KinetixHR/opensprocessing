@@ -21,7 +21,7 @@ def sendEmail(text):
     # Define your email credentials
     sender_email = 'kinetixopensprocessing@gmail.com'
     sender_password = 'ttljtrsnsqlhmnrz'
-    receiver_email = ['dart@kinetixhr.com',"kxdart@kinetixhr.com"]
+    receiver_email = ['DART@kinetixhr.com','dart@kinetixhr.com',"kxdart@kinetixhr.com"]
     subject = 'NGHS Upload Files to Sharepoint: Alert!'
     body = text
 
