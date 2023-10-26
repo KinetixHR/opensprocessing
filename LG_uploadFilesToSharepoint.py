@@ -194,8 +194,8 @@ try:
             logging.info("Successfully uploaded the file to the L+G folder")
 
 except Exception as e:
-    logging.warning("Upload to Sharepoint for today's NGHS file failed!")
-    sendEmail(f"Sharepoint file Upload for today's NGHS file has failed! details here: {str(e)}")
+    logging.warning("Upload to Sharepoint for today's L+G file failed!")
+    sendEmail(f"Sharepoint file Upload for today's L+G file has failed! details here: {str(e)}")
 
 
 logging.info("Removing files from local disk...")
