@@ -349,7 +349,7 @@ opens.drop(['Shift Information1'], axis=1, inplace = True)
 opens["Record Type"] = "RPO"
 
 # 11E code....
-print(opens.columns)
+
 opens["Pay Grade"] = np.where( ( (opens["Pay Grade"] == 11) & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area') ), '11E', opens["Pay Grade"] )
 opens["Salary High"] = np.where( ( (opens["Salary High"] == '11E') & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area') ), 86823, opens["Salary High"] )
 
