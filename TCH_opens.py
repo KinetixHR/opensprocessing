@@ -166,7 +166,7 @@ recruiters = [
 
 ]
 
-df_tr = pd.read_csv(tr_file,encoding = "ISO-8859-1")
+df_tr = pd.read_csv(tr_file, encoding = "ISO-8859-1")
 #df_tch = pd.read_excel("Output1.xls",skiprows = 2)
 df_tch = pd.read_excel("Output1.xlsx")
 df_tch.columns = ['Requisition Title', 'Requisition Number', 'Job Requisition ID',
@@ -344,9 +344,11 @@ print(opens["Pay Grade"].value_counts())
 opens = opens.drop(['Full Name','TCH Name'],axis=1)
 # And end wacky hacky shift info stuff. 
 
-opens.drop(['Shift Information1'],axis=1,inplace = True)
+opens.drop(['Shift Information1'], axis=1, inplace = True)
 
 opens["Record Type"] = "RPO"
+
+#opens["Salary Grade"] = np.where( ( ([opens["Salary Grade"] == 11) & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area']) ), '11E', opens["Salary Grade"])
 
 logging.info(f"Done processing, generating file with {opens.shape[0]} rows")
 
@@ -370,7 +372,7 @@ opens.to_csv(f"TCH {genDate()}.csv",index = False)
 sender_email = 'kinetixopensprocessing@gmail.com'
 sender_password = 'ttljtrsnsqlhmnrz'
 #receiver_email = ['kasokan@kinetixhr.com']
-receiver_email = ['DART@kinetixhr.com',"kxdart@kinetixhr.com",'dart@kinetixhr.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com','skenney@kinetixhr.com']
+receiver_email = ['DART@kinetixhr.com',"kxdart@kinetixhr.com",'dart@kinetixhr.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com', 'skenney@kinetixhr.com']
 subject = 'New TCH Opens'
 body = 'Hey CJ, please find todays opens for TCH. NOTE: This is an automated email sent the script that runs the opens processing.'
 
