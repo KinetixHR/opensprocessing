@@ -350,8 +350,8 @@ opens["Record Type"] = "RPO"
 
 # 11E code....
 
-opens["Pay Grade"] = np.where( ( (opens["Pay Grade"] == 11) & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area') ), '11E', opens["Pay Grade"] )
-opens["Salary High"] = np.where( ( (opens["Salary High"] == '11E') & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area') ), 86823, opens["Salary High"] )
+opens["Pay Grade"] = np.where( ( (opens["Pay Grade"] == '11Austin') & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area') ), '11E', opens["Pay Grade"] )
+opens["Salary High"] = np.where( ( (opens["Salary High"] == '11Austin') & (opens["Regional Area"] == 'Austin-Round Rock-San Marcos Metro Area') ), 86823, opens["Salary High"] )
 
 logging.info(f"Done processing, generating file with {opens.shape[0]} rows")
 
@@ -375,8 +375,8 @@ opens.to_csv(f"TCH {genDate()}.csv",index = False)
 sender_email = 'kinetixopensprocessing@gmail.com'
 sender_password = 'ttljtrsnsqlhmnrz'
 #receiver_email = ['kasokan@kinetixhr.com']
-receiver_email = ['awhelan@kinetixhr.com']
-#receiver_email = ['DART@kinetixhr.com',"kxdart@kinetixhr.com",'dart@kinetixhr.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com', 'skenney@kinetixhr.com']
+#receiver_email = ['awhelan@kinetixhr.com']
+receiver_email = ['DART@kinetixhr.com',"kxdart@kinetixhr.com",'dart@kinetixhr.com','awhelan@kinetixhr.com', 'cfisher@kinetixhr.com', 'pvelusamy@kinetixhr.com', 'skenney@kinetixhr.com']
 subject = 'New TCH Opens'
 body = 'Hey CJ, please find todays opens for TCH. NOTE: This is an automated email sent the script that runs the opens processing.'
 
