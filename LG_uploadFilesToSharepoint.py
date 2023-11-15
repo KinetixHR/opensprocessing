@@ -60,6 +60,7 @@ def loginToSharepointViaAzure():
 
     if os.path.exists('token_cache.bin'):
         cache.deserialize(open('token_cache.bin', 'r').read())
+        logging.info("Got cache!")
 
     atexit.register(lambda: open('token_cache.bin', 'w').write(cache.serialize()) if cache.has_state_changed else None)
 
@@ -69,6 +70,7 @@ def loginToSharepointViaAzure():
     result = None
     if len(accounts) > 0:
         result = app.acquire_token_silent(SCOPES, account=accounts[0])
+        logging.info("Got credentials")
 
     #print(result)
     access_token = result['access_token']
@@ -77,7 +79,7 @@ def loginToSharepointViaAzure():
         if 'user_code' not in flow:
             raise Exception('Failed to create device flow')
 
-        print(flow['message'])
+        logging.warning(flow['message'])
 
         result = app.acquire_token_by_device_flow(flow)
 
@@ -88,6 +90,8 @@ def loginToSharepointViaAzure():
 
     else:
         raise Exception('no access token in result')
+
+    logging.info(f"Got Access Token!!")
     return access_token
 
 def getToSharepointFolderInCoachesSite(item_path_):
@@ -145,13 +149,16 @@ access_token = loginToSharepointViaAzure()
 # Get Sharepoint Details for nghs folder uplad
 item_path = 'Daily New Job Opens/L+G'
 drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
-
+logging.info(drive_id)
+logging.info(folder_id)
 
 # UPLOAD A FILE
 files = os.listdir()
+logging.info(files)
 for el in files:
     if today in el:
         filename = el
+        logging.info(el,filename)
         break
     else:
         filename = 'nothing' 
@@ -163,7 +170,9 @@ try:
 
         path_url = urllib.parse.quote(f'{folder_path}/{filename}')
         result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
+        logging.info(result)
         if result.status_code == 200:
+            logging.info(result.status_code)
             file_info = result.json()
             file_id = file_info['id']
             result = requests.put(
@@ -174,8 +183,10 @@ try:
                 },
                 data=open(filename, 'rb').read()
             )
+            logging.info("Successfully uploaded the file to the L+G folder")
             
         elif result.status_code == 404:
+            logging.warning(result.status_code)
             folder_url = urllib.parse.quote(folder_path)
             result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{folder_url}', headers={'Authorization': 'Bearer ' + access_token})
             result.raise_for_status()
@@ -198,6 +209,8 @@ except Exception as e:
     sendEmail(f"Sharepoint file Upload for today's L+G file has failed! details here: {str(e)}")
 
 
+
+
 logging.info("Removing files from local disk...")
 for el in os.listdir():
     #logging.info(el)
@@ -210,3 +223,4 @@ for el in os.listdir():
     if "Requisit" in el:
        os.remove(el)
        logging.info(f"Removed file! {el}")
+
