@@ -1,7 +1,8 @@
+'''This Script runs the upload of today's new file to Sharepoint, then sends an email to a list of folks'''
 
 import logging
-logging.basicConfig(filename='lg_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
-logging.info("Starting Script.")
+logging.basicConfig(filename='opensprocessing/TCH_Opens_new/logs/tch_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
+logging.info("Starting upload file to Sharepoint Script.")
 
 import requests
 import msal
@@ -16,19 +17,27 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import tch_helpers as tchhelper
 
-def sendEmail(text): 
+def sendEmail(text,emptysend = 0): 
     # Define your email credentials
     sender_email = 'kinetixopensprocessing@gmail.com'
     sender_password = 'ttljtrsnsqlhmnrz'
-    receiver_email = ['DART@kinetixhr.com','dart@kinetixhr.com',"kxdart@kinetixhr.com"]
-    subject = 'Landis + Gyr upload file to Sharepoint: Alert'
-    body = text
+    receiver_email = ['DART@kinetixhr.com','CFisher@kinetixhr.com']
+
+    # This next list has everyone who needs to get this email when this script is in production.
+    prod_receiver_email = ['DART@kinetixhr.com','CFisher@kinetixhr.com','ahan@kinetixhr.com','awhelan@kinetixhr.com','bgauthier@kinetixhr.com','ewarren@kinetixhr.com','gpeacock@kinetixhr.com','jhutchins@kinetixhr.com','kstorey@kinetixhr.com','sschmitt@kinetixhr.com','sward@kinetixhr.com','sbyers@kinetixhr.com']
+
+    subject = f"TCH Opens for {tchhelper.gen_date()}"
+    if emptysend == 0:
+        body = text
+    else:
+        body = "No new TCH Reqs found today."
 
     # Create the email message
     msg = MIMEMultipart()
     msg['From'] = sender_email
-    msg['To'] = ", ".join(receiver_email)
+    msg['To'] = ", ".join(prod_receiver_email)
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
 
@@ -36,7 +45,6 @@ def sendEmail(text):
     # Connect to the SMTP server and send the email
     smtp_server = 'smtp.gmail.com'  # Example: Gmail SMTP server
     smtp_port = 587  # Example: Gmail SMTP port
-
     try:
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
@@ -98,6 +106,8 @@ def loginToSharepointViaAzure():
 def getToSharepointFolderInCoachesSite(item_path_):
     result = requests.get(f'{ENDPOINT}/sites/{SHAREPOINT_HOST_NAME}:/sites/{SITE_NAME}', headers={'Authorization': 'Bearer ' + access_token})
     site_info = result.json()
+    logging.info(item_path_)
+    logging.info(site_info)
     site_id = site_info['id']
     #print(site_id)
     result = requests.get(f'{ENDPOINT}/sites/{site_id}/drive', headers={'Authorization': 'Bearer ' + access_token})
@@ -112,20 +122,18 @@ def getToSharepointFolderInCoachesSite(item_path_):
     folder_id = item_info['id']
     return [drive_id, folder_id]
 
+
 def genDate():
     '''
     Generate date in a format that is ready to be included in a filename, like
     NGHS 20YYMMDD
+    TCH: M.DD.20YY
     '''
     today = date.today()
     day = str(today.day)
     month = str(today.month)
-    year = str(today.year)
-    if len(month) == 1:
-        month = "0"+month
-    if len(day) == 1:
-        day = "0"+day
-    return year+month+day
+    year = str(today.year)[-2:]
+    return month+"."+day+"."+year
 
 TENANT_ID = '87272575-d7ac-4705-86e3-21cd39600d46'
 CLIENT_ID = '514cf64c-692a-48b1-a791-1c0da37fcb0c'
@@ -147,27 +155,35 @@ today = genDate()
 # Log in to Azure AD
 access_token = loginToSharepointViaAzure()
 
-# Get Sharepoint Details for nghs folder uplad
-item_path = 'Daily New Job Opens/L+G'
+# Get Sharepoint Details for TCH folder upload
+item_path = '2024 New Jobs - TCH'
 drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
 logging.info(drive_id)
 logging.info(folder_id)
 
 # UPLOAD A FILE
+os.chdir('./TCH_Opens_new')
+os.chdir('./client_info')
 files = os.listdir()
-logging.info(files)
+#logging.info(files)
+logging.info(today)
 for el in files:
+    logging.info([el,today,today in el])
     if today in el:
         filename = el
-        logging.info(el,filename)
+        file_shape = pd.read_excel(el,engine = 'openpyxl')
+        file_shape = file_shape.shape[0]
+        logging.info([el,filename])
         break
     else:
-        filename = 'nothing' 
+        filename = 'nothing'
+        file_shape = 0
 
 try:
-        
+    if file_shape == 0:
+        sendEmail("",1)
     if filename != 'nothing':
-        folder_path = 'Daily New Job Opens/L+G/'
+        folder_path = '2024 New Jobs - TCH'
 
         path_url = urllib.parse.quote(f'{folder_path}/{filename}')
         result = requests.get(f'{ENDPOINT}/drives/{drive_id}/root:/{path_url}', headers={'Authorization': 'Bearer ' + access_token})
@@ -184,7 +200,7 @@ try:
                 },
                 data=open(filename, 'rb').read()
             )
-            logging.info("Successfully uploaded the file to the L+G folder")
+            logging.info("Successfully uploaded the file to the TCH folder")
             
         elif result.status_code == 404:
             logging.warning(result.status_code)
@@ -203,25 +219,17 @@ try:
                 },
                 data=open(filename, 'rb').read()
             )
-            logging.info("Successfully uploaded the file to the L+G folder")
+            file_url_to_use = f'https://kinetixhr.sharepoint.com/:f:/r/sites/KinetixCoaches/Shared%20Documents/2024%20New%20Jobs%20-%20TCH?csf=1&web=1&e=wne1MP'
+            logging.info("Successfully uploaded the file to the TCH folder")
 
+            sendEmail(f"Please find today's TCH Opens file in this Sharepoint folder: {file_url_to_use}",0)
+            
+            logging.info("Removing files from this directory:")
+            logging.info(os.getcwd())
+            tchhelper.remove_files()
+        else:
+            logging.info(result.status_code)
+                         
 except Exception as e:
-    logging.warning("Upload to Sharepoint for today's L+G file failed!")
-    sendEmail(f"Sharepoint file Upload for today's L+G file has failed! details here: {str(e)}")
-
-
-
-
-logging.info("Removing files from local disk...")
-for el in os.listdir():
-    #logging.info(el)
-    if "LG 2" in el:
-      os.remove(el)
-      logging.info(f"Removed file! {el}")
-    if "report1" in el:
-      os.remove(el)
-      logging.info(f"Removed file! {el}")
-    if "Requisit" in el:
-       os.remove(el)
-       logging.info(f"Removed file! {el}")
-
+    logging.warning("Upload to Sharepoint for today's TCH file failed!")
+    sendEmail(f"Sharepoint file Upload for today's TCH file has failed! details here: {str(e)}")

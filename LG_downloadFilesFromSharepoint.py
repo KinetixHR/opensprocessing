@@ -112,6 +112,7 @@ SCOPES = [
 ]
 
 # Log in to Azure AD
+
 access_token = loginToSharepointViaAzure()
 logging.info("Logged in!")
 
@@ -119,9 +120,11 @@ logging.info("Logged in!")
 item_path = 'Daily New Job Opens/l+g_unprocessed'
 drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
 logging.info("Got details.")
+print(drive_id,folder_id)
 
 # Find NGHS file name and paths
 result = requests.get(f'{ENDPOINT}/drives/{drive_id}/items/{folder_id}/children', headers={'Authorization': 'Bearer ' + access_token})
+print(result.json())
 children = result.json()['value']
 for item in children:
     if 'Requisit' in item['name']:

@@ -36,7 +36,6 @@ def sendEmail(text):
     # Connect to the SMTP server and send the email
     smtp_server = 'smtp.gmail.com'  # Example: Gmail SMTP server
     smtp_port = 587  # Example: Gmail SMTP port
-
     try:
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()

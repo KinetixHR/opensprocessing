@@ -35,7 +35,7 @@ def api_ImportRow(row):
           'Department_Number__c':row[1]['Department Number'],
           'FLSA__c': row[1]["FLSA"],
           'TR1__Contact__c':row[1]["Contact"],                    # Contact Name / Hiring Manager
-          'Account_Manager__c': '0051G000007kp6kQAA',        # Acccount Manager
+          'Account_Manager__c': '0051G000007mEEqQAM',        # Acccount Manager
           'Customer_Agreement__c': 'a026R00000LsmY4QAJ',  # Agreement Number
           'TR1__State_Area__c':row[1]["State/Area"],
           'TR1__Regional_Area__c':row[1]["Regional Area"],
@@ -319,8 +319,7 @@ try:
   logging.info("Loaded in data - done!")
 
   # Code to import reqs to TR
-  logging.info(data_to_upload["Salary High"].value_counts())
-  #data_to_upload["Salary High"] = data_to_upload["Salary High"].apply(lambda x: x.replace(",",""))
+  data_to_upload["Salary High"] = data_to_upload["Salary High"].apply(lambda x: x.replace(",",""))
   data_to_upload["Salary High"] = data_to_upload["Salary High"].astype(int)
   data_to_upload["Contact"] = data_to_upload["Hiring Manager"].apply(api_findContact)
   data_to_upload['Record Owner ID'] = data_to_upload['Record Owner'].apply(api_findUser)

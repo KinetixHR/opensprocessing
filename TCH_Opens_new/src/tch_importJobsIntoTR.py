@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(filename='lg_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(filename='opensprocessing/TCH_Opens_new/logs/tch_opens_logging.log', level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 logging.info("Starting Script.")
 
 
@@ -23,47 +23,77 @@ import atexit
 import os.path
 import urllib
 import pandas as pd
+import tch_helpers as tchhelper
 
 
 def api_ImportRow(row):
   try:
-      sf.TR1__Job__c.create(
-      {
-          'Client_Req_Number__c': row[1]['Client Req Number'],
-          'OwnerId': row[1]['Record Owner ID'],                      # Recruiter Name
-          'Name':row[1]['Job Name'],                              # Job Name
-          'Department_Number__c':row[1]['Department Number'],
-          'FLSA__c': row[1]["FLSA"],
-          'TR1__Contact__c':row[1]["Contact"],                    # Contact Name / Hiring Manager
-          'Account_Manager__c': '0051G000007kp6kQAA',        # Acccount Manager
-          'Customer_Agreement__c': 'a026R00000LsmY4QAJ',  # Agreement Number
-          'TR1__State_Area__c':row[1]["State/Area"],
-          'TR1__Regional_Area__c':row[1]["Regional Area"],
-          'TR1__Account__c': '0011G00000uy4HhQAI',                   # Company Name
-          'TR1__Salary_High__c':row[1]["Salary High"],
-          'RecordTypeId': '0126R000001NlRCQA0',                   # Record Type like HRPO , RPO
-          'Coach__c': '0051G000007kp6kQAA',
-          'Primary_Secondary__c':"Primary",
-
-
-          # Unused for Landis + Gyr imports:
-
-            #'Position_Number__c':'AWIMPORTTEST_1',
-            #'Department_Name__c':'WOO Nursing Ops Leadership',
-            #'Shift_Information__c':'Full-Time',
-            #'Client_Req_Number__c':'999999999',
-            #'Project__c': 'Austin',
-            #'Paygrade__c':'12RN',
-            #'TR1__Salary_Low__c':'10000',
-
-      }
+      logging.info("Starting to import data...")
+      logging.info(row)
+      #logging.info(row[1]["Record Type"])
+      if row[1]['Record Type'] == "01237000000RXdjAAG": #PIPELINE REQS ONLY!
+          #logging.info("PIPELINE REQ")
+          #logging.info(row)
+          sf.TR1__Job__c.create(
+        {
+            'Position_Number__c': row[1]['Position Number'],
+            'Client_Req_Number__c': row[1]['Client Req Number'],
+            'OwnerId': row[1]['Job Owner'],                      # Recruiter Name
+            'Name':row[1]['Job Name'],                              # Job Name
+            'Department_Number__c':row[1]['Department Number'],
+            'Department_Name__c': row[1]["Department Name"],
+            'FTE__c': row[1]["FTE"],
+            'Budgeted_Start_Date__c': row[1]["Budgeted Start Date"],
+            'Paygrade__c': row[1]["Pay Grade"],
+            'Project__c':row[1]["Project"],
+            'TR1__Contact__c':row[1]["Contact"],          # Contact Name / Hiring Manager
+            'Account_Manager__c': '00537000004wGaNAAU',        # Acccount Manager
+            'Customer_Agreement__c': 'a021G00000z2UWRQA2',  # Agreement Number
+            'TR1__State_Area__c':row[1]["State/Area"],
+            'TR1__Regional_Area__c':row[1]["Regional Area"],
+            'TR1__Account__c': '0013700000cBblUAAS',                   # Company Name
+            'TR1__Salary_High__c':row[1]["Salary High"],
+            'TR1__Salary_Low__c':row[1]["Salary Low"],
+            'Coach__c': row[1]["Coach"],
+            'Primary_Secondary__c':"Primary",
+            'RecordTypeId': row[1]['Record Type'],
+        }
+          )
+          logging.info("Inserted a pipeline job")
+      else:
+        sf.TR1__Job__c.create(
+        {
+            'Position_Number__c': row[1]['Position Number'],
+            'Client_Req_Number__c': row[1]['Client Req Number'],
+            'OwnerId': row[1]['Job Owner'],                      # Recruiter Name
+            'Name':row[1]['Job Name'],                              # Job Name
+            'Department_Number__c':row[1]['Department Number'],
+            'Department_Name__c': row[1]["Department Name"],
+            'FLSA__c': str(row[1]["FLSA"]),
+            'FTE__c': row[1]["FTE"],
+            'Budgeted_Start_Date__c': row[1]["Budgeted Start Date"],
+            'Paygrade__c': row[1]["Pay Grade"],
+            'Project__c':row[1]["Project"],
+            'TR1__Contact__c':row[1]["Contact"],          # Contact Name / Hiring Manager
+            'Account_Manager__c': '00537000004wGaNAAU',        # Acccount Manager
+            'Customer_Agreement__c': 'a021G00000z2UWRQA2',  # Agreement Number
+            'TR1__State_Area__c':row[1]["State/Area"],
+            'TR1__Regional_Area__c':row[1]["Regional Area"],
+            'TR1__Account__c': '0013700000cBblUAAS',                   # Company Name
+            'TR1__Salary_High__c':row[1]["Salary High"],
+            'TR1__Salary_Low__c':row[1]["Salary Low"],
+            'RecordTypeId': row[1]['Record Type'],                   # Record Type like HRPO , RPO
+            'Coach__c': row[1]["Coach"],
+            'Primary_Secondary__c':"Primary",
+        }
       )
+      logging.info("Successfully inserted job", row[1]["Job Name"])
       return print("Successfully inserted job", row[1]["Job Name"])
 
   except Exception as ex:
       print(ex)
       sendEmail(f"Failed to insert job {row[1]['Job Name']} into TR. Details: {ex}")
-      return "FAILED TO INSERT JOB"
+      return logging.warning(["FAILED TO INSERT JOB",row[1]['Job Name'],ex])
 
 def api_findContact(contactname):
 
@@ -134,12 +164,13 @@ def api_findUser(username):
     print(ex)
     print("User not found in TR with exact match, searching for user")
     try:
-      username_ = username.split(" ")[-1]
+      username_ = username.split(",")[0]
       print("Starting Last Name partial matching using...", username_)
       id_to_return = api_searchForUser(username_,True)
     except:
       print(ex)
       print("Partial matching failed!")
+      return username
 
   
   return id_to_return.values[0]
@@ -230,26 +261,29 @@ def downloadFromSharepoint(file_path_):
     return sharepoint_data
 
 def genDate():
+
     '''
     Generate date in a format that is ready to be included in a filename, like
     NGHS 20YYMMDD
+    TCH: M.DD.20YY
     '''
+    #import datetime
     today = date.today()
+    #today = today - datetime.timedelta(1)
+    
     day = str(today.day)
     month = str(today.month)
-    year = str(today.year)
-    if len(month) == 1:
-        month = "0"+month
-    if len(day) == 1:
-        day = "0"+day
-    return year+month+day
+    year = str(today.year)[-2:]
+    #print(month+"."+day+"."+year)
+    return month+"."+day+"."+year
 
 def sendEmail(text): 
     # Define your email credentials
     sender_email = 'kinetixopensprocessing@gmail.com'
     sender_password = 'ttljtrsnsqlhmnrz'
     receiver_email = ['dart@kinetixhr.com',"kxdart@kinetixhr.com",'DART@kinetixhr.com']
-    subject = 'Landis + Gyr Job Import to TR: Alert'
+    #receiver_email = ['awhelan@kinetixhr.com']
+    subject = 'TCH Job Import to TR: Alert'
     body = text
 
     # Create the email message
@@ -274,6 +308,10 @@ def sendEmail(text):
     except Exception as e:
         logging.warning('Failed to send email. Error:', e)
         return False
+
+
+fail_flag = 0
+
 
 try:
   TENANT_ID = '87272575-d7ac-4705-86e3-21cd39600d46'
@@ -301,7 +339,7 @@ try:
   logging.info("Logged in!")
 
   # Get Sharepoint Details for nghs folder download
-  item_path = 'Daily New Job Opens/L+G'
+  item_path = '2024 New Jobs - TCH'
   drive_id,folder_id = getToSharepointFolderInCoachesSite(item_path)
   logging.info("Got details.")
 
@@ -316,22 +354,81 @@ try:
 
   # Download NGHS Files and read into dataframes!
   data_to_upload = downloadFromSharepoint(file_to_upload_path)
+  print(data_to_upload["Job Owner"].value_counts())
   logging.info("Loaded in data - done!")
+  logging.info(data_to_upload)
+  logging.info(data_to_upload["Budgeted Start Date"])
 
   # Code to import reqs to TR
-  logging.info(data_to_upload["Salary High"].value_counts())
   #data_to_upload["Salary High"] = data_to_upload["Salary High"].apply(lambda x: x.replace(",",""))
+  #logging.info("Salary Changed!")
+
+
+  data_to_upload["Budgeted Start Date"] =data_to_upload["Budgeted Start Date"].fillna('01-01-1901 0:00')
+  logging.info(data_to_upload["Budgeted Start Date"])
+  data_to_upload["Budgeted Start Date"] = pd.to_datetime(data_to_upload["Budgeted Start Date"],format = 'mixed').dt.strftime("%Y-%m-%d")
+  logging.info("Date Changed")
+
+
+
+  data_to_upload["FLSA"] = data_to_upload["FLSA"].fillna("Non-Exempt")
+  logging.info("FLSA Changed!")
+  logging.info(data_to_upload["FLSA"].value_counts())
+
+  data_to_upload = data_to_upload.fillna()
+  
+  data_to_upload["Position Number"] = data_to_upload["Position Number"].astype(int)
+  data_to_upload["Salary High"] = pd.to_numeric(data_to_upload["Salary High"],errors = 'coerce')
   data_to_upload["Salary High"] = data_to_upload["Salary High"].astype(int)
+  logging.info("Salary Changed!")
   data_to_upload["Contact"] = data_to_upload["Hiring Manager"].apply(api_findContact)
-  data_to_upload['Record Owner ID'] = data_to_upload['Record Owner'].apply(api_findUser)
+  logging.info("Contact Changed!")
+  data_to_upload['Job Owner'] = data_to_upload['Job Owner'].apply(api_findUser)
+  logging.info("Owner Changed!")
+  data_to_upload["Coach"] = data_to_upload["Coach"].apply(api_findUser)
+  logging.info("Coach Changed!")
+  data_to_upload["Project"] = data_to_upload["Project"].fillna(" ")  
+  logging.info("Filled NA's in project")
 
-  logging.info("Done with prep for ",data_to_upload.shape[0]," reqs.")
+  
+
+  logging.info("Done with prep for :")
+  logging.info(data_to_upload.shape[0])
+  logging.info("reqs")
+
+  
+  for i,el in data_to_upload.iterrows():
+      logging.info(f"Importing row {i} of {data_to_upload.shape[0]}")
+      logging.info(el)
+
+      a = el["Record Type"]
+      if a == 'RPO':
+        logging.info("CHANGING RPO")
+        logging.info(data_to_upload.at[i,'Record Type'])
+        data_to_upload.at[i,"Record Type"] = "01237000000RWvbAAG"
+        logging.info("DONE CHANGING RPO")
+      if a == 'Pipeline':
+        logging.info("CHANGING PIPELINE")
+        data_to_upload.at[i,'Record Type'] = "01237000000RXdjAAG"
+        logging.info("DONE CHANGING PIPELINE")
+  logging.info(data_to_upload)
   for el in data_to_upload.iterrows():
+    try:
       api_ImportRow(el)
-  logging.info("Done with importing new reqs!")
-  sendEmail("L+G Reqs imported into TR successfully!")
-
+    except Exception as ex:
+      fail_flag = 1
+      logging.info(ex)
+      break
+  logging.info("Done attempting to import new reqs...")
+  if fail_flag == 0:
+      logging.info('Req imported sucessfully')
+      #sendEmail("TCH Reqs imported into TR successfully!")
 except Exception as e:
-  logging.warning("L+G Reqs failed import into TR")
-  sendEmail(f"L+G Reqs failed import into TR. Details: {e}")
+  logging.warning("TCH Reqs failed import into TR")
+  logging.warning(e)
+  #sendEmail(f"TCH Reqs failed import into TR. Details: {e}")
 
+if fail_flag == 1:
+  logging.warning("TCH Reqs failed import into TR")
+  logging.warning(ex)
+  #sendEmail(f"TCH Reqs failed import into TR. Details: {e}")
