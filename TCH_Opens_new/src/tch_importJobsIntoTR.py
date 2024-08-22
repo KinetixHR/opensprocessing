@@ -411,7 +411,9 @@ try:
         logging.info("CHANGING PIPELINE")
         data_to_upload.at[i,'Record Type'] = "01237000000RXdjAAG"
         logging.info("DONE CHANGING PIPELINE")
+  
   logging.info(data_to_upload)
+  
   for el in data_to_upload.iterrows():
     try:
       api_ImportRow(el)
